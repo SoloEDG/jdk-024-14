@@ -1,13 +1,19 @@
 import type { GameDocument, Session } from "./types";
+import { defaultZone } from "../features/scent/model/zones";
 export function newDocument(): GameDocument {
+  const spot = "reed";
   return {
-    version: 1,
-    spot: "reed",
-    bait: "worm",
+    version: 2,
+    spot,
+    hook: "worm",
+    chum: "rice",
     power: 0.6,
     drag: 0.4,
     seed: 48127,
-    stock: { worm: 24, corn: 20, fly: 16 },
+    stock: { worm: 24, corn: 20, fly: 16, rice: 18, shrimp: 14, bran: 16 },
+    clock: 0,
+    chumField: [],
+    lastDrop: null,
     bag: [],
     journal: {},
     stats: { casts: 0, catches: 0, escapes: 0, released: 0 },
@@ -22,10 +28,12 @@ export function idleSession(): Session {
     charge: 0,
     castPower: 0,
     spot: "reed",
-    bait: "worm",
+    hook: "worm",
+    chum: "rice",
+    zone: defaultZone("reed"),
+    startedAt: 0,
     fish: null,
     weight: 0,
-    biteAt: 2,
     progress: 0,
     tension: 0.35,
     energy: 1,
@@ -35,6 +43,11 @@ export function idleSession(): Session {
     reeling: false,
     duration: 0,
     message: "深呼吸，把时间交给湖面。",
+    fishRoll: 0,
+    sizeRoll: 0,
+    exposure: {},
+    biteScent: null,
+    combo: null,
   };
 }
 export function isBusy(s: Session) {

@@ -1,11 +1,12 @@
 import type { Session, GameDocument, FishSpecies } from "../../../shared/types";
 import { clamp } from "../../../shared/random";
+import { species as lookupSpecies } from "../../../shared/catalog";
 export function fightStep(
   s: Session,
   doc: GameDocument,
-  fish: FishSpecies,
   dt: number,
 ): Session {
+  const fish: FishSpecies = lookupSpecies(s.fish ?? "crucian");
   const duration = s.duration + dt;
   const surge = (Math.sin(duration * 2.3) + 1) * 0.5 * fish.strength;
   const load = s.reeling ? doc.power * (1 - doc.drag * 0.5) : 0;

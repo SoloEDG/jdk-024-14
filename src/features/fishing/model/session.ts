@@ -1,11 +1,17 @@
-import type { Session, GameDocument } from "../../../shared/types";
-import { species } from "../../../shared/catalog";
+import type { Session, GameDocument, FishId } from "../../../shared/types";
 import { clamp } from "../../../shared/random";
 import { fightStep } from "../lib/physics";
+import { advanceWaiting, freezeBite } from "../lib/encounter";
+
+/**
+ * Advance one simulation step. `at` is the shared game clock, so every water
+ * (and every deposit in it) ages by the same amount wherever the player is.
+ */
 export function tickSession(
   s: Session,
   doc: GameDocument,
   dt: number,
+  at: number,
 ): Session {
   if (s.phase === "charging")
     return {
@@ -14,18 +20,14 @@ export function tickSession(
       charge: clamp((Math.sin((s.clock + dt) * 2.2 - Math.PI / 2) + 1) / 2),
     };
   if (s.phase === "waiting") {
-    const clock = s.clock + dt;
-    return {
-      ...s,
-      clock,
-      phase: clock >= s.biteAt ? "bite" : "waiting",
-      message:
-        clock >= s.biteAt ? "有鱼咬钩！点击「提竿」抓住时机。" : s.message,
-    };
+    const result = advanceWaiting(s, doc, at, dt);
+    if (result.biter)
+      return freezeBite(result.session, doc, at, result.biter as FishId);
+    return result.session;
   }
   if (s.phase === "bite") {
     const clock = s.clock + dt;
-    return clock - s.biteAt > 4
+    return clock > 4
       ? {
           ...s,
           clock,
@@ -34,10 +36,10 @@ export function tickSession(
         }
       : { ...s, clock };
   }
-  if (s.phase === "fighting" && s.fish)
-    return fightStep(s, doc, species(s.fish), dt);
+  if (s.phase === "fighting" && s.fish) return fightStep(s, doc, dt);
   return s;
 }
+
 export function strike(s: Session): Session {
   return s.phase === "bite"
     ? {

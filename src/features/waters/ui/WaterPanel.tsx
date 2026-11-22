@@ -3,6 +3,7 @@ import type { Command } from "../../../shared/commands";
 import type { GameDocument } from "../../../shared/types";
 import { waters } from "../model/waters";
 import { canVisit, habitatSummary } from "../lib/habitat";
+import { remainingRatio } from "../../scent/lib/core";
 export function WaterPanel({
   doc,
   busy,
@@ -23,6 +24,9 @@ export function WaterPanel({
       <div className="water-list">
         {waters.map((w, i) => {
           const open = canVisit(doc, w.id);
+          const active = doc.chumField.filter(
+            (p) => p.spot === w.id && remainingRatio(p, doc.clock) > 0,
+          ).length;
           return (
             <button
               key={w.id}
@@ -42,6 +46,9 @@ export function WaterPanel({
                     ? `${w.depth} · ${habitatSummary(w.id).count} 种鱼`
                     : `捕获 ${w.catchesRequired} 尾后解锁`}
                 </span>
+                {active > 0 && (
+                  <em className="water-chum">窝 {active}</em>
+                )}
               </span>
               {open ? <ArrowUpRight size={16} /> : <Lock size={14} />}
             </button>

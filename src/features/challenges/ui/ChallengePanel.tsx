@@ -27,7 +27,7 @@ export function ChallengePanel({
         </button>
       </div>
       <div className="challenge-list">
-        {challenges.slice(0, expanded ? 5 : 2).map((c) => {
+        {challenges.slice(0, expanded ? challenges.length : 2).map((c) => {
           const n = challengeProgress(doc, c.id);
           const claimed = doc.claimed.includes(c.id);
           const open = doc.stats.catches >= c.unlockAt;
@@ -44,6 +44,7 @@ export function ChallengePanel({
                   {open ? c.description : `捕获 ${c.unlockAt} 尾后解锁`}
                 </small>
                 <progress aria-label={c.name} max={c.target} value={n} />
+                {c.basis && <small className="basis">依据 · {c.basis}</small>}
                 <small className="reward">奖励 · {c.reward}</small>
               </div>
               {!open ? (

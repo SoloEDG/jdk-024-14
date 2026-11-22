@@ -1,14 +1,22 @@
-import type { Session, SpotId } from "../../../shared/types";
+import type { GameDocument, Session } from "../../../shared/types";
+import { dropZone, spotZones, zonePoint } from "../../scent/model/zones";
+import { chumInfo } from "../../scent/model/materials";
+import { remainingRatio } from "../../scent/lib/core";
+
 export function LakeScene({
   session,
-  spot,
+  doc,
 }: {
   session: Session;
-  spot: SpotId;
+  doc: GameDocument;
 }) {
+  const spot = doc.spot;
   const active = ["waiting", "bite", "fighting"].includes(session.phase);
-  const x = 460 + session.castPower * 160;
-  const y = 250 - session.castPower * 50;
+  const drop = zonePoint(spot, session.zone);
+  const x = drop.x;
+  const y = drop.y - 30;
+  const zones = spotZones(spot);
+  const visible = doc.chumField.filter((p) => p.spot === spot);
   return (
     <svg
       className={"lake-scene scene-" + spot}
@@ -103,10 +111,78 @@ export function LakeScene({
         stroke="#adc0b5"
         strokeWidth="3"
       />
+      <g className="zone-marks">
+        {zones.map((z) => {
+          const p = zonePoint(spot, z.id);
+          const current = z.id === session.zone;
+          return (
+            <g key={z.id}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={current ? 15 : 9}
+                className={current ? "zone-dot active" : "zone-dot"}
+              />
+              <text
+                x={p.x}
+                y={p.y + (current ? 34 : 26)}
+                className={current ? "zone-label active" : "zone-label"}
+              >
+                {z.name}
+              </text>
+            </g>
+          );
+        })}
+      </g>
+      {visible.map((p) => {
+        const point = zonePoint(spot, p.zone);
+        const ratio = remainingRatio(p, doc.clock);
+        return (
+          <g key={p.id} className="chum-cloud">
+            <circle
+              cx={point.x}
+              cy={point.y - 6}
+              r={8 + ratio * 14 * p.releaseRate}
+              fill={chumInfo[p.chum].color}
+              opacity={0.14 + ratio * 0.14}
+            />
+            <circle
+              cx={point.x}
+              cy={point.y - 6}
+              r={4 + ratio * 7}
+              fill={chumInfo[p.chum].color}
+              opacity={0.22}
+            />
+          </g>
+        );
+      })}
+      {session.phase === "charging" && (
+        <g className="cast-target">
+          {(() => {
+            const target = zonePoint(
+              spot,
+              dropZone(spot, session.charge),
+            );
+            return (
+              <>
+                <circle
+                  cx={target.x}
+                  cy={target.y}
+                  r={18 + session.charge * 12}
+                  className="target-ring"
+                />
+                <text x={target.x} y={target.y + 34} className="target-label">
+                  预计落点
+                </text>
+              </>
+            );
+          })()}
+        </g>
+      )}
       {active && (
         <>
           <path
-            d={`M528 331Q565 200 ${x} ${y}`}
+            d={`M528 331Q565 ${Math.min(300, y - 20)} ${x} ${y}`}
             fill="none"
             stroke="#f3f3df"
             strokeWidth="1.2"
@@ -140,3 +216,4 @@ export function LakeScene({
     </svg>
   );
 }
+

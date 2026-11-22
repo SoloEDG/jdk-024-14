@@ -1,5 +1,16 @@
-import type { GameDocument, Session, Catch } from "../../../shared/types";
+import type {
+  Catch,
+  GameDocument,
+  JournalCombo,
+  JournalEntry,
+  Session,
+} from "../../../shared/types";
 import { recordCatch } from "../lib/records";
+
+/**
+ * Landing a fish records the combination that was actually present at the
+ * instant it took the hook — not whatever is selected afterwards.
+ */
 export function landCatch(
   doc: GameDocument,
   s: Session,
@@ -11,7 +22,9 @@ export function landCatch(
     fish: s.fish,
     weight: s.weight,
     spot: s.spot,
-    bait: s.bait,
+    bait: s.hook,
+    chum: s.chum,
+    combo: s.combo ?? undefined,
     time: now,
     duration: s.duration,
     peakTension: s.peak,
@@ -30,4 +43,8 @@ export function releaseCatch(doc: GameDocument, id: string): GameDocument {
     bag: doc.bag.filter((c) => c.id !== id),
     stats: { ...doc.stats, released: doc.stats.released + 1 },
   };
+}
+
+export function combosOf(entry: JournalEntry | undefined): Record<string, JournalCombo> {
+  return entry?.combos ?? {};
 }

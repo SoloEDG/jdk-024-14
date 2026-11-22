@@ -11,6 +11,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.35,
     waters: ["reed", "brook"],
     baits: ["worm", "corn"],
+    scent: { savory: 0.35, sweet: 0.7, ferment: 0.2 },
     note: "喜欢芦苇边的缓流，对玉米粒和蚯蚓都很有兴趣。",
   },
   {
@@ -24,6 +25,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.5,
     waters: ["reed", "deep"],
     baits: ["worm", "fly"],
+    scent: { savory: 0.8, sweet: -0.15, ferment: 0.2 },
     note: "藏在水草和树影间，活饵更容易吸引它。",
   },
   {
@@ -37,6 +39,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.66,
     waters: ["reed", "deep"],
     baits: ["corn"],
+    scent: { savory: 0.1, sweet: 0.9, ferment: 0.35 },
     note: "觅食时格外偏爱玉米，靠近岸边时仍会突然发力。",
   },
   {
@@ -50,6 +53,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.7,
     waters: ["brook"],
     baits: ["fly", "worm"],
+    scent: { savory: 0.7, sweet: -0.2, ferment: 0.15 },
     note: "生活在含氧充足的溪流，拟蝇是很好的选择。",
   },
   {
@@ -63,6 +67,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.8,
     waters: ["brook", "deep"],
     baits: ["fly"],
+    scent: { savory: 0.9, sweet: -0.3, ferment: 0.1 },
     note: "攻击性很强，收线时留一点余地来化解冲刺。",
   },
   {
@@ -76,6 +81,7 @@ export const fishCatalog: FishSpecies[] = [
     strength: 0.95,
     waters: ["deep"],
     baits: ["fly", "worm"],
+    scent: { savory: 0.95, sweet: -0.4, ferment: 0.1 },
     note: "深水区的掠食者，长时间拉满鱼线很容易功亏一篑。",
   },
 ];

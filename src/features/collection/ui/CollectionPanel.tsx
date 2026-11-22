@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { BookOpen, Backpack, ArrowUpRight } from "lucide-react";
+import { BookOpen, Backpack, ArrowUpRight, Layers } from "lucide-react";
 import type { GameDocument } from "../../../shared/types";
 import type { Command } from "../../../shared/commands";
 import { fishCatalog, species } from "../../../shared/catalog";
-import { bagWeight } from "../lib/records";
+import {
+  bagWeight,
+  comboBreakdown,
+  layeredCombos,
+  learnedCombos,
+} from "../lib/records";
 import { FishIllustration } from "./FishIllustration";
+import { ComboDetails, ComboSummary } from "../../scent/ui/ComboDetails";
+import { comboLabel } from "../../scent/lib/core";
+
 export function CollectionPanel({
   doc,
   send,
@@ -15,6 +23,7 @@ export function CollectionPanel({
   const [tab, setTab] = useState<"atlas" | "bag">("atlas");
   const [detail, setDetail] = useState<string | null>(null);
   const fish = detail ? species(detail) : null;
+  const entry = fish ? doc.journal[fish.id] : undefined;
   return (
     <section className="collection-panel">
       <div className="section-title">
@@ -65,10 +74,20 @@ export function CollectionPanel({
               <em>{fish.latin}</em>
               <p>{fish.note}</p>
               <small>
-                {doc.journal[fish.id]
-                  ? `捕获 ${doc.journal[fish.id]?.count} 尾 · 最大 ${doc.journal[fish.id]?.best.toFixed(2)} kg`
+                {entry
+                  ? `捕获 ${entry.count} 尾 · 最大 ${entry.best.toFixed(2)} kg`
                   : "尝试探索它偏爱的水域与鱼饵。"}
               </small>
+              {entry && Object.keys(entry.combos ?? {}).length > 0 && (
+                <div className="combo-breakdown">
+                  <span className="combo-label">
+                    <Layers size={11} /> 实际起作用的组合
+                  </span>
+                  {comboBreakdown(entry).map(([key, combo]) => (
+                    <div key={key}>{<ComboSummary combo={combo} />}</div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>
@@ -77,6 +96,10 @@ export function CollectionPanel({
           <small>
             共 {doc.bag.length} 尾 · {bagWeight(doc.bag).toFixed(2)} kg
           </small>
+          <div className="journal-combo-stats">
+            <span>{learnedCombos(doc.journal)} 种组合</span>
+            <span>{layeredCombos(doc.journal)} 次叠加</span>
+          </div>
           {doc.bag.length === 0 && (
             <div className="empty-bag">
               <Backpack size={26} />
@@ -85,11 +108,13 @@ export function CollectionPanel({
             </div>
           )}
           {doc.bag.map((c) => (
-            <div className="bag-item" key={c.id}>
+            <div className="bag-item bag-item-combo" key={c.id}>
               <FishIllustration fish={species(c.fish)} />
               <span>
                 <strong>{species(c.fish).name}</strong>
-                <small>{c.weight.toFixed(2)} kg</small>
+                <small>
+                  {c.weight.toFixed(2)} kg · {comboLabel(c.combo)}
+                </small>
               </span>
               <button
                 className="text-btn"
@@ -97,6 +122,12 @@ export function CollectionPanel({
               >
                 放流
               </button>
+              {c.combo && (
+                <details className="bag-combo">
+                  <summary>组合来源</summary>
+                  <ComboDetails combo={c.combo} compact />
+                </details>
+              )}
             </div>
           ))}
         </div>

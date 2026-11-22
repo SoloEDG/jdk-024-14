@@ -13,6 +13,7 @@ import {
 import { isBusy } from "../shared/initial";
 import { WaterPanel, WaterConditions, water } from "../features/waters";
 import { BaitPanel, RigPanel } from "../features/tackle";
+import { ScentField } from "../features/scent";
 import { LakeScene, FishingPanel } from "../features/fishing";
 import { CollectionPanel } from "../features/collection";
 import { ChallengePanel, TripStats } from "../features/challenges";
@@ -107,7 +108,7 @@ export function App() {
                 </span>
               </div>
               <div className="scene-wrap">
-                <LakeScene session={session} spot={doc.spot} />
+                <LakeScene session={session} doc={doc} />
                 <div className="scene-caption">
                   <span>清晨 / 07:30</span>
                   <span>{place.description}</span>
@@ -121,6 +122,7 @@ export function App() {
               <BaitPanel doc={doc} busy={busy} send={send} />
               <RigPanel doc={doc} busy={busy} send={send} />
             </div>
+            <ScentField doc={doc} session={session} busy={busy} send={send} />
             <div className="journal-strip">
               <span>✳</span>
               <p>
@@ -176,7 +178,10 @@ export function App() {
             <h2 id="guide-title">一竿，一次相遇。</h2>
             <ol>
               <li>
-                选择已开放的钓点，搭配鱼饵。不同水域和鱼饵会改变上钩鱼群。
+                选择钓点，为这一竿配齐「钩饵 + 诱窝」。钩饵影响入口偏好，诱窝在落点持续释香；整组缺任何一项都不会扣。
+              </li>
+              <li>
+                窝味沿可通水区域扩散衰减，隔岸不会混在一起。同处时腥酵、甜酵增强，腥甜互相抵消；鱼要持续接触足量香味才会靠近。
               </li>
               <li>点击开始抛竿，再次点击确定力度，耐心等待浮漂跳动。</li>
               <li>看到咬钩提示后，在四秒内提竿。</li>
@@ -184,11 +189,14 @@ export function App() {
                 按住收线，把鱼带到岸边。降低力度或松手可缓解张力；松线超过五秒会脱钩。键盘可按住空格或回车收线。
               </li>
               <li>
+                连竿留下的窝料会各自计时，先散的不会再和后来的混作一团。手记与挑战按上钩瞬间实际起作用的组合记录。
+              </li>
+              <li>
                 收获会保存到背包和图鉴。捕获两尾解锁溪流，五尾解锁深水。放流保留图鉴记录。
               </li>
             </ol>
             <p>
-              离开页面时对抗暂停；刷新会结束本次垂钓，已经消耗的鱼饵不会返还。
+              离开页面时对抗暂停；刷新会结束本次垂钓，已经消耗的饵料不会返还。取消蓄力不会投放诱窝。
             </p>
             <button className="primary" onClick={() => setHelp(false)}>
               去湖边坐坐

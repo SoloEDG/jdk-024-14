@@ -1,7 +1,11 @@
-import { Fish, MousePointer2, RotateCcw, Anchor } from "lucide-react";
+import { Fish, MousePointer2, RotateCcw, Anchor, X } from "lucide-react";
 import type { Command } from "../../../shared/commands";
 import type { GameDocument, Session } from "../../../shared/types";
 import { species } from "../../../shared/catalog";
+import { checkLoadout } from "../../tackle/model/loadout";
+import { chumInfo, hookBaitInfo } from "../../scent/model/materials";
+import { BiteScentPanel } from "../../scent/ui/BiteScentPanel";
+
 export function FishingPanel({
   doc,
   session: s,
@@ -12,12 +16,24 @@ export function FishingPanel({
   send: (c: Command) => void;
 }) {
   const finish = s.phase === "landed" || s.phase === "escaped";
+  const check = checkLoadout(doc);
   return (
     <div className="fishing-controls">
       <div className="live-status" role="status">
         <span className={"status-dot " + s.phase} />
         <span>{s.message}</span>
       </div>
+      {s.phase !== "ready" && (
+        <div className="cast-loadout" aria-label="本竿组合">
+          <span>
+            钩饵 · {hookBaitInfo[s.hook].short}
+          </span>
+          <span>
+            诱窝 · {s.chum ? chumInfo[s.chum].short : "不投窝"}
+          </span>
+          <small>{s.phase === "waiting" ? "整组已扣" : ""}</small>
+        </div>
+      )}
       {s.phase === "fighting" && (
         <div className="fight-meters">
           <label>
@@ -46,7 +62,7 @@ export function FishingPanel({
         <span className="control-tip">
           <MousePointer2 size={15} />
           {s.phase === "ready"
-            ? "点击蓄力，再次点击抛竿"
+            ? "点击蓄力，再次点击抛竿；取消不投窝"
             : s.phase === "charging"
               ? `抛竿力度 ${Math.round(s.charge * 100)}%`
               : s.phase === "fighting"
@@ -56,17 +72,27 @@ export function FishingPanel({
         {s.phase === "ready" && (
           <button
             className="primary"
-            disabled={!doc.stock[doc.bait]}
+            disabled={!check.ok}
             onClick={() => send({ type: "charge-start" })}
+            title={check.ok ? "" : "钩饵或诱窝缺货，整组不齐时不扣任何一项"}
           >
             <Anchor size={17} />
             开始抛竿
           </button>
         )}
         {s.phase === "charging" && (
-          <button className="primary" onClick={() => send({ type: "cast" })}>
-            抛竿 · {Math.round(s.charge * 100)}%
-          </button>
+          <>
+            <button className="primary" onClick={() => send({ type: "cast" })}>
+              抛竿 · {Math.round(s.charge * 100)}%
+            </button>
+            <button
+              className="ghost-button"
+              onClick={() => send({ type: "charge-cancel" })}
+            >
+              <X size={14} />
+              取消
+            </button>
+          </>
         )}
         {s.phase === "waiting" && (
           <button className="primary" disabled>
@@ -113,7 +139,10 @@ export function FishingPanel({
       </div>
       {s.phase === "charging" && (
         <progress className="charge-bar" max="1" value={s.charge} />
-      )}{" "}
+      )}
+      {(s.phase === "bite" || s.phase === "fighting") && s.biteScent && (
+        <BiteScentPanel report={s.biteScent} />
+      )}
       {s.phase === "landed" && s.fish && (
         <div className="catch-toast">
           <Fish />
@@ -123,7 +152,9 @@ export function FishingPanel({
               {species(s.fish).name} · {s.weight.toFixed(2)} kg
             </strong>
           </span>
-          <small>已放入背包，图鉴同步记录</small>
+          <small>
+            咬钩组合：{s.combo?.label ?? "旧单饵"} · 已放入背包并记入手记
+          </small>
         </div>
       )}
     </div>
